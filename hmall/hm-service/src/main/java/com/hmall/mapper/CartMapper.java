@@ -1,0 +1,17 @@
+package com.hmall.mapper;
+
+import com.hmall.domain.po.Cart;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
+
+/**
+ * <p>
+ * 订单详情表 Mapper 接口
+ * </p>
+ *
+ */
+public interface CartMapper extends BaseMapper<Cart> {
+
+   
+}

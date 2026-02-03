@@ -1,12 +1,8 @@
-# 忽略所有生成的 target 目录（Maven 构建产物）
 **/target/
-
-# 忽略 IntelliJ IDEA 项目配置文件
-.idea/
+.idea
 *.iml
-
-# 忽略编译后的字节码文件
 *.class
-
+*Test.java
+**/test/
 # 忽略特定的配置文件（按你要求）
 **/application.yaml
