@@ -5,4 +5,17 @@
 *Test.java
 **/test/
 # 忽略特定的配置文件（按你要求）
-**/application.yaml
+# 忽略开发环境和本地环境的敏感配置
+**/application-dev.yml
+**/application-dev.yaml
+**/application-local.yml
+**/application-local.yaml
+
+# 注意：千万不要忽略 application.yml 或 application.yaml (基础配置)
+
+### Logs ###
+# 忽略所有日志文件和目录
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
