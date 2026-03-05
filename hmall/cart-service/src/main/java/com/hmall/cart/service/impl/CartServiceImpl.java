@@ -16,7 +16,11 @@ import com.hmall.cart.mapper.CartMapper;
 import com.hmall.cart.service.ICartService;
 //import com.hmall.cart.service.IItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,6 +36,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
 //    private final IItemService itemService;
     private final CartMapper cartMapper;
     private static final int MAX_CART_ITEMS = 10;
+    private  final RestTemplate restTemplate;
 
     @Override
     public void addItem2Cart(CartFormDTO cartFormDTO) {
@@ -85,7 +90,20 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
         Set<Long> itemIds = cartList.stream().map(Cart::getItemId).collect(Collectors.toSet());
         // 5. 批量查询商品信息
 //        List<ItemDTO> itemDTOList = itemService.queryItemByIds(itemIds);
+        String url="http://localhost:8081/items?ids={ids}";
+        ResponseEntity<List<ItemDTO>> response = restTemplate.exchange(
+                url,//请求路径
+                HttpMethod.GET,//请求方式
+                null,//请求体
+                new ParameterizedTypeReference<List<ItemDTO>>() {
+                },//响应的数据类型
+                Map.of("ids", CollUtils.join(itemIds, ","))//请求参数
+        );
         List<ItemDTO> itemDTOList =null;
+        if (response.getStatusCode().is2xxSuccessful()) {
+            itemDTOList = response.getBody();
+            System.out.println("远程调用商品服务成功，返回数据：" + itemDTOList);
+        }
         // 5.1 防御：如果商品服务查不到任何数据
         if (CollUtils.isEmpty(itemDTOList)) {
             return BeanUtils.copyList(cartList, CartVO.class);
@@ -98,9 +116,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
         for (CartVO cartVO : cartVOS) {
             ItemDTO itemDTO = itemDTOMap.get(cartVO.getItemId());
             if (itemDTO != null) {
-                cartVO.setName(itemDTO.getName());
-                cartVO.setPrice(itemDTO.getPrice()); //以此处的最新价格为准
-                cartVO.setImage(itemDTO.getImage());
+                cartVO.setNewPrice(itemDTO.getPrice()); //以此处的最新价格为准
                 cartVO.setStatus(itemDTO.getStatus());
                 cartVO.setStock(itemDTO.getStock());
             }
