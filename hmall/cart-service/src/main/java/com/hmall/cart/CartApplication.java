@@ -1,12 +1,14 @@
 package com.hmall.cart;
 
+import com.hmall.api.client.ItemClient;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 //开启openfeign功能，可以扫描到那些Feign客户端
-@EnableFeignClients
+//@EnableFeignClients(clients = {ItemClient.class})
+@EnableFeignClients(basePackages = "com.hmall.api.client")
 @MapperScan("com.hmall.cart.mapper")
 @SpringBootApplication
 public class CartApplication {
