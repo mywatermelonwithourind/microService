@@ -4,6 +4,7 @@ import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmall.cart.client.ItemClient;
 import com.hmall.common.exception.BadRequestException;
 import com.hmall.common.exception.BizIllegalException;
 import com.hmall.common.utils.BeanUtils;
@@ -41,6 +42,8 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
     private static final int MAX_CART_ITEMS = 10;
     private  final RestTemplate restTemplate;
     private final DiscoveryClient discoveryClient;
+
+    private final ItemClient itemClient;
 
     @Override
     public void addItem2Cart(CartFormDTO cartFormDTO) {
@@ -94,30 +97,32 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
         Set<Long> itemIds = cartList.stream().map(Cart::getItemId).collect(Collectors.toSet());
         // 5. 批量查询商品信息
 //        List<ItemDTO> itemDTOList = itemService.queryItemByIds(itemIds);
+
+        List<ItemDTO> itemDTOList = itemClient.queryItemByIds(itemIds);
         // 获取注册中心item-service的服务列表
-        List<ServiceInstance> instanceList = discoveryClient.getInstances("item-service");
-
-        //从上面的服务列表中随机选择一个服务实例
-        ServiceInstance serviceInstance = instanceList.get(RandomUtil.randomInt(instanceList.size()));
-
-        //可以从实例中获得商品微服务的访问
-
-
-//        String url="http://localhost:8081/items?ids={ids}";
-        String url=serviceInstance.getUri()+"/items?ids={ids}";
-        ResponseEntity<List<ItemDTO>> response = restTemplate.exchange(
-                url,//请求路径
-                HttpMethod.GET,//请求方式
-                null,//请求体
-                new ParameterizedTypeReference<List<ItemDTO>>() {
-                },//响应的数据类型
-                Map.of("ids", CollUtils.join(itemIds, ","))//请求参数
-        );
-        List<ItemDTO> itemDTOList =null;
-        if (response.getStatusCode().is2xxSuccessful()) {
-            itemDTOList = response.getBody();
-            System.out.println("远程调用商品服务成功，返回数据：" + itemDTOList);
-        }
+//        List<ServiceInstance> instanceList = discoveryClient.getInstances("item-service");
+//
+//        //从上面的服务列表中随机选择一个服务实例
+//        ServiceInstance serviceInstance = instanceList.get(RandomUtil.randomInt(instanceList.size()));
+//
+//        //可以从实例中获得商品微服务的访问
+//
+//
+////        String url="http://localhost:8081/items?ids={ids}";
+//        String url=serviceInstance.getUri()+"/items?ids={ids}";
+//        ResponseEntity<List<ItemDTO>> response = restTemplate.exchange(
+//                url,//请求路径
+//                HttpMethod.GET,//请求方式
+//                null,//请求体
+//                new ParameterizedTypeReference<List<ItemDTO>>() {
+//                },//响应的数据类型
+//                Map.of("ids", CollUtils.join(itemIds, ","))//请求参数
+//        );
+//        List<ItemDTO> itemDTOList =null;
+//        if (response.getStatusCode().is2xxSuccessful()) {
+//            itemDTOList = response.getBody();
+//            System.out.println("远程调用商品服务成功，返回数据：" + itemDTOList);
+//        }
         // 5.1 防御：如果商品服务查不到任何数据
         if (CollUtils.isEmpty(itemDTOList)) {
             return BeanUtils.copyList(cartList, CartVO.class);
