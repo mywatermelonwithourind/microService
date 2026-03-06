@@ -1,5 +1,6 @@
 package com.hmall.cart.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,6 +17,8 @@ import com.hmall.cart.mapper.CartMapper;
 import com.hmall.cart.service.ICartService;
 //import com.hmall.cart.service.IItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +40,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
     private final CartMapper cartMapper;
     private static final int MAX_CART_ITEMS = 10;
     private  final RestTemplate restTemplate;
+    private final DiscoveryClient discoveryClient;
 
     @Override
     public void addItem2Cart(CartFormDTO cartFormDTO) {
@@ -90,7 +94,17 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
         Set<Long> itemIds = cartList.stream().map(Cart::getItemId).collect(Collectors.toSet());
         // 5. 批量查询商品信息
 //        List<ItemDTO> itemDTOList = itemService.queryItemByIds(itemIds);
-        String url="http://localhost:8081/items?ids={ids}";
+        // 获取注册中心item-service的服务列表
+        List<ServiceInstance> instanceList = discoveryClient.getInstances("item-service");
+
+        //从上面的服务列表中随机选择一个服务实例
+        ServiceInstance serviceInstance = instanceList.get(RandomUtil.randomInt(instanceList.size()));
+
+        //可以从实例中获得商品微服务的访问
+
+
+//        String url="http://localhost:8081/items?ids={ids}";
+        String url=serviceInstance.getUri()+"/items?ids={ids}";
         ResponseEntity<List<ItemDTO>> response = restTemplate.exchange(
                 url,//请求路径
                 HttpMethod.GET,//请求方式
