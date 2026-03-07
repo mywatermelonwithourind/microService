@@ -2,7 +2,7 @@ server:
   port: 8083
 spring:
   application:
-    name: cart-service
+    name: user-service
   cloud:
     nacos:
       server-addr: 192.168.12.168:8848
